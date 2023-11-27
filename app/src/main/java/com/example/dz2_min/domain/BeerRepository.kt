@@ -1,8 +1,7 @@
 package com.example.dz2_min.domain
 
 import com.example.dz2_min.model.Beer
-import java.util.concurrent.Flow
-
+import kotlinx.coroutines.flow.Flow
 interface BeerRepository {
-    fun getAllBeers(): kotlinx.coroutines.flow.Flow<List<Beer>>
+    fun getAllBeers(): Flow<List<Beer>>
 }

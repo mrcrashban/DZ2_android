@@ -11,7 +11,7 @@ interface BeerApi {
     suspend fun getAllBeers(): List<Beer>
 
     companion object RetrofitBuilder {
-        private const val BASE_URL = "https://api.punkapi.com/v2/beers/1"
+        private const val BASE_URL = "https://api.punkapi.com/v2/"
 
         private fun getRetrofit(): Retrofit {
             return Retrofit.Builder()
