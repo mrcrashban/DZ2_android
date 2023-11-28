@@ -4,6 +4,7 @@ import android.os.Bundle
 import androidx.activity.ComponentActivity
 import androidx.activity.compose.BackHandler
 import androidx.activity.compose.setContent
+import androidx.compose.foundation.ExperimentalFoundationApi
 import androidx.compose.foundation.background
 import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.Arrangement
@@ -16,6 +17,9 @@ import androidx.compose.foundation.layout.width
 import androidx.compose.foundation.layout.wrapContentHeight
 import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.lazy.items
+import androidx.compose.foundation.lazy.staggeredgrid.LazyVerticalStaggeredGrid
+import androidx.compose.foundation.lazy.staggeredgrid.StaggeredGridCells
+import androidx.compose.foundation.lazy.staggeredgrid.items
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material3.ExperimentalMaterial3Api
 import androidx.compose.material3.MaterialTheme
@@ -78,36 +82,21 @@ fun BeerPhoto(
         verticalArrangement = Arrangement.spacedBy(0.dp, Alignment.Top),
         horizontalAlignment = Alignment.CenterHorizontally,
         modifier = modifier
-            .padding(top = 12.dp)
+            .padding(top = 1.dp)
             .fillMaxWidth()
             .wrapContentHeight()
             .shadow(
                 elevation = 200.dp,
                 ambientColor = Color(0x14000000)
             )
-            .padding(start = 16.dp, end = 16.dp, bottom = 16.dp)
+            .padding(start = 0.dp, end = 0.dp, bottom = 0.dp)
             .background(color = Color(0xFFFFFFFF), shape = RoundedCornerShape(size = 16.dp))
     ) {
         AsyncImage(
             model = beer.image_url,
-            contentDescription = "image description",
-            contentScale = ContentScale.FillBounds,
-            modifier = Modifier
-                .padding(top = 12.dp)
-                .width(328.dp)
-                .height(301.dp)
-                .clip(RoundedCornerShape(30.dp))
-        )
-        Text(
-            text = beer.name,
-            style = TextStyle(
-                fontSize = 15.sp,
-                lineHeight = 20.sp,
-                fontWeight = FontWeight(400),
-                color = Color(0xFF000000),
-                letterSpacing = 0.2.sp,
-            ),
-            modifier = Modifier.padding(start = 16.dp, top = 12.dp, end = 16.dp, bottom = 16.dp)
+            contentScale = ContentScale.Crop,
+            contentDescription = null,
+            modifier = Modifier.fillMaxWidth().wrapContentHeight()
         )
         if (isFull){
             Text(
@@ -124,7 +113,7 @@ fun BeerPhoto(
     }
 }
 
-@OptIn(ExperimentalMaterial3Api::class)
+@OptIn(ExperimentalMaterial3Api::class, ExperimentalFoundationApi::class)
 @Composable
 fun BeerScreen(modifier: Modifier = Modifier.fillMaxSize(1f)) {
     var selected by remember {
@@ -185,18 +174,26 @@ fun BeerScreen(modifier: Modifier = Modifier.fillMaxSize(1f)) {
                     .background(color = Color(0xFFF2F3F5), shape = RoundedCornerShape(size = 8.dp))
             )
         }
-        LazyColumn {
-            items(filteredBeers.ifEmpty {
-                if (filterText.isEmpty()) beers else listOf(
-                    Beer(
-                        -1,
-                        "Without beer",
-                        "No url"
+        LazyVerticalStaggeredGrid(
+            columns = StaggeredGridCells.Fixed(3),
+            verticalItemSpacing = 1.dp,
+            horizontalArrangement = Arrangement.spacedBy(1.dp),
+            modifier = Modifier.fillMaxSize(),
+            content = {
+                items(filteredBeers.ifEmpty {
+                    if (filterText.isEmpty()) beers else listOf(
+                        Beer(
+                            -1,
+                            "Without beer",
+                            "No url"
+                        )
                     )
-                )
-            }) {
-                BeerPhoto(beer = it, Modifier.clickable { selected = it.id })
+                }) {
+                    BeerPhoto(beer = it, Modifier.clickable { selected = it.id })
+                }
             }
+            )
+
         }
     }
-}
+
