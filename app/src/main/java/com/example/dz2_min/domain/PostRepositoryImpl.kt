@@ -1,17 +1,16 @@
 package com.example.dz2_min.domain
 
-import com.example.dz2_min.model.Beer
-import com.example.dz2_min.network.BeerApi
+import com.example.dz2_min.model.Post
+import com.example.dz2_min.network.PostApi
 import kotlinx.coroutines.channels.awaitClose
 import kotlinx.coroutines.channels.trySendBlocking
 import kotlinx.coroutines.flow.callbackFlow
-import java.util.concurrent.Flow
 
-class BeerRepositoryImpl {
-    fun getAllBeers(): kotlinx.coroutines.flow.Flow<List<Beer>> =
+class PostRepositoryImpl {
+    fun getAllBeers(): kotlinx.coroutines.flow.Flow<List<Post>> =
         callbackFlow {
             trySendBlocking(
-                BeerApi.api.getAllBeers()
+                PostApi.api.getAllBeers()
             )
             awaitClose()
         }

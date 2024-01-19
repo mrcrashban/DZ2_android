@@ -1,5 +1,6 @@
 package com.example.dz2_min
 
+import android.annotation.SuppressLint
 import android.os.Bundle
 import androidx.activity.ComponentActivity
 import androidx.activity.compose.BackHandler
@@ -8,24 +9,28 @@ import androidx.compose.foundation.ExperimentalFoundationApi
 import androidx.compose.foundation.background
 import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.Arrangement
+import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
+import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.width
 import androidx.compose.foundation.layout.wrapContentHeight
-import androidx.compose.foundation.lazy.LazyColumn
-import androidx.compose.foundation.lazy.items
 import androidx.compose.foundation.lazy.staggeredgrid.LazyVerticalStaggeredGrid
 import androidx.compose.foundation.lazy.staggeredgrid.StaggeredGridCells
 import androidx.compose.foundation.lazy.staggeredgrid.items
 import androidx.compose.foundation.shape.RoundedCornerShape
+import androidx.compose.material3.CenterAlignedTopAppBar
+import androidx.compose.material3.CircularProgressIndicator
 import androidx.compose.material3.ExperimentalMaterial3Api
 import androidx.compose.material3.MaterialTheme
-import androidx.compose.material3.OutlinedTextField
+import androidx.compose.material3.Scaffold
 import androidx.compose.material3.Surface
 import androidx.compose.material3.Text
+import androidx.compose.material3.TopAppBarDefaults
+import androidx.compose.material3.rememberTopAppBarState
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.collectAsState
@@ -39,14 +44,18 @@ import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
 import androidx.compose.ui.draw.shadow
 import androidx.compose.ui.graphics.Color
+import androidx.compose.ui.input.nestedscroll.nestedScroll
 import androidx.compose.ui.layout.ContentScale
 import androidx.compose.ui.text.TextStyle
 import androidx.compose.ui.text.font.FontWeight
+import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import androidx.lifecycle.viewmodel.compose.viewModel
-import coil.compose.AsyncImage
-import com.example.dz2_min.model.Beer
+import coil.compose.AsyncImagePainter
+import coil.compose.SubcomposeAsyncImage
+import coil.compose.SubcomposeAsyncImageContent
+import com.example.dz2_min.model.Post
 import com.example.dz2_min.ui.theme.DZ2_minTheme
 import com.example.dz2_min.vm.BeerViewModel
 import kotlinx.coroutines.launch
@@ -61,7 +70,7 @@ class MainActivity : ComponentActivity() {
                     modifier = Modifier.fillMaxSize(),
                     color = MaterialTheme.colorScheme.background
                 ) {
-                    BeerScreen()
+                    CenterAlignedTopAppBar()
                 }
             }
         }
@@ -70,7 +79,7 @@ class MainActivity : ComponentActivity() {
 
 @Composable
 fun BeerPhoto(
-    beer: Beer,
+    post: Post,
     modifier: Modifier = Modifier,
     backHandle: () -> Unit = {},
     isFull: Boolean = false
@@ -82,25 +91,48 @@ fun BeerPhoto(
         verticalArrangement = Arrangement.spacedBy(0.dp, Alignment.Top),
         horizontalAlignment = Alignment.CenterHorizontally,
         modifier = modifier
-            .padding(top = 1.dp)
+            .padding(top = 12.dp)
             .fillMaxWidth()
             .wrapContentHeight()
             .shadow(
                 elevation = 200.dp,
                 ambientColor = Color(0x14000000)
             )
-            .padding(start = 0.dp, end = 0.dp, bottom = 0.dp)
+            .padding(start = 16.dp, end = 16.dp, bottom = 16.dp)
             .background(color = Color(0xFFFFFFFF), shape = RoundedCornerShape(size = 16.dp))
     ) {
-        AsyncImage(
-            model = beer.image_url,
-            contentScale = ContentScale.Crop,
+        SubcomposeAsyncImage(
+            model = post.url,
+            contentScale = ContentScale.FillBounds,
             contentDescription = null,
-            modifier = Modifier.fillMaxWidth().wrapContentHeight()
+            modifier = Modifier
+                .padding(top = 12.dp)
+                .width(328.dp)
+                .height(301.dp)
+                .clip(RoundedCornerShape(30.dp))
+        )
+        {
+            val state = painter.state
+            if (state is AsyncImagePainter.State.Loading || state is AsyncImagePainter.State.Error) {
+                CircularProgressIndicator()
+            } else {
+                SubcomposeAsyncImageContent()
+            }
+        }
+        Text(
+            text = post.title,
+            style = TextStyle(
+                fontSize = 15.sp,
+                lineHeight = 20.sp,
+                fontWeight = FontWeight(400),
+                color = Color(0xFF000000),
+                letterSpacing = 0.2.sp,
+            ),
+            modifier = Modifier.padding(start = 16.dp, top = 12.dp, end = 16.dp, bottom = 16.dp)
         )
         if (isFull){
             Text(
-                text = "id = ${beer.id}",
+                text = "id = ${post.id}",
                 style = TextStyle(
                     fontSize = 11.sp,
                     lineHeight = 14.sp,
@@ -113,9 +145,38 @@ fun BeerPhoto(
     }
 }
 
-@OptIn(ExperimentalMaterial3Api::class, ExperimentalFoundationApi::class)
+@SuppressLint("UnusedMaterial3ScaffoldPaddingParameter")
+@OptIn(ExperimentalMaterial3Api::class)
 @Composable
-fun BeerScreen(modifier: Modifier = Modifier.fillMaxSize(1f)) {
+fun CenterAlignedTopAppBar() {
+    val scrollBehavior = TopAppBarDefaults.pinnedScrollBehavior(rememberTopAppBarState())
+
+    Scaffold(
+        modifier = Modifier.nestedScroll(scrollBehavior.nestedScrollConnection),
+
+        topBar = {
+            CenterAlignedTopAppBar(
+                colors = TopAppBarDefaults.largeTopAppBarColors(
+                    containerColor = MaterialTheme.colorScheme.primaryContainer,
+                    titleContentColor = MaterialTheme.colorScheme.primary,
+                ),
+                title = {
+                    Text(
+                        "Аналог Threads",
+                        maxLines = 1,
+                        overflow = TextOverflow.Ellipsis
+                    )
+                },
+                scrollBehavior = scrollBehavior,
+            )
+        },
+    ) {
+        BeerScreen()
+    }
+}
+@OptIn(ExperimentalFoundationApi::class)
+@Composable
+fun BeerScreen() {
     var selected by remember {
         mutableStateOf(-1)
     }
@@ -127,6 +188,7 @@ fun BeerScreen(modifier: Modifier = Modifier.fillMaxSize(1f)) {
         }
     }
 
+
     val beers by viewModel.beerUiState.collectAsState()
     var filteredBeers by remember {
         mutableStateOf(beers)
@@ -134,66 +196,61 @@ fun BeerScreen(modifier: Modifier = Modifier.fillMaxSize(1f)) {
     var filterText by remember {
         mutableStateOf("")
     }
-    if (selected != -1) {
-        beers.find { it.id == selected }
-            ?.let {
-                BeerPhoto(
-                    beer = it,
-                    backHandle = { selected = -1 },
-                    isFull = true
-                )
-            }
+    if (beers.isEmpty()){
+        ShowLoading()
     } else {
-        Column {
-
-            //Добавляем поле для ввода
-            OutlinedTextField(
-                value = filterText,
-                textStyle = TextStyle(
-                    fontSize = 16.sp,
-                    lineHeight = 20.sp,
-                    fontWeight = FontWeight(400),
-                    color = Color(0xFF818C99),
-                    letterSpacing = 0.1.sp,
-
-                    ),
-                //При изменении состояния поля (ввод символов), ищем карточки
-                onValueChange = {
-                    filterText = it
-                    scope.launch {
-                        filteredBeers = beers.filter { beer ->
-                            beer.name.contains(filterText)
-                                    || beer.id.toString()
-                                .contains(filterText)
-                        }
-                    }
-                },
-                modifier = Modifier
-                    .padding(16.dp)
-                    .fillMaxWidth()
-                    .background(color = Color(0xFFF2F3F5), shape = RoundedCornerShape(size = 8.dp))
-            )
-        }
-        LazyVerticalStaggeredGrid(
-            columns = StaggeredGridCells.Fixed(3),
-            verticalItemSpacing = 1.dp,
-            horizontalArrangement = Arrangement.spacedBy(1.dp),
-            modifier = Modifier.fillMaxSize(),
-            content = {
-                items(filteredBeers.ifEmpty {
-                    if (filterText.isEmpty()) beers else listOf(
-                        Beer(
-                            -1,
-                            "Without beer",
-                            "No url"
-                        )
+        if (selected != -1) {
+            beers.find { it.id == selected }
+                ?.let {
+                    BeerPhoto(
+                        post = it,
+                        backHandle = { selected = -1 },
+                        isFull = true,
+                        modifier = Modifier.padding(0.dp,60.dp,0.dp,0.dp)
                     )
-                }) {
-                    BeerPhoto(beer = it, Modifier.clickable { selected = it.id })
                 }
-            }
+        } else {
+            LazyVerticalStaggeredGrid(
+                columns = StaggeredGridCells.Fixed(1),
+                verticalItemSpacing = 1.dp,
+                horizontalArrangement = Arrangement.spacedBy(1.dp),
+
+                modifier = Modifier.padding(0.dp,60.dp,0.dp,0.dp),
+                content = {
+                    items(filteredBeers.ifEmpty {
+                        if (filterText.isEmpty()) beers else listOf(
+                            Post(
+                                -1,
+                                -1,
+                                "Without beer",
+                                "No url",
+                                "No url"
+                            )
+                        )
+                    }) {
+                        BeerPhoto(post = it, Modifier.clickable { selected = it.id })
+                    }
+                }
             )
 
         }
     }
 
+}
+
+@Composable
+fun ShowLoading() {
+    Row(
+        verticalAlignment = Alignment.CenterVertically,
+        horizontalArrangement = Arrangement.Center
+    ) {
+        Box(
+            contentAlignment = Alignment.Center,
+            modifier = Modifier
+                .fillMaxSize()
+        ) {
+            CircularProgressIndicator()
+        }
+
+    }
+}
